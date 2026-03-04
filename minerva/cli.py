@@ -19,6 +19,7 @@ from humanfriendly import parse_size
 
 from minerva import __version__
 from minerva.auth import do_login, load_token
+from minerva.cache import cache_dns
 from minerva.console import console
 from minerva.constants import (
     ARIA2C_CONNECTIONS,
@@ -110,6 +111,9 @@ def run(
 
     # initialize the file size index
     init_index(SIZE_IDX_FILE)
+
+    # cache dns requests
+    cache_dns()
 
     # make sure max cache size isn't set too small or it will constantly ask for jobs
     if max_cache_size and parse_size(max_cache_size) < parse_size("10GiB"):

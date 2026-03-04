@@ -1,6 +1,7 @@
 import json
 from typing import Any, Self
 from urllib.parse import unquote
+import socket
 
 from minerva.constants import CACHE_FILE
 
@@ -42,6 +43,22 @@ class JobCache:
         if key in self._data:
             del self._data[key]
             self._save()
+
+
+def cache_dns() -> None:
+    dns_cache: dict[tuple[str, int], list[tuple[socket.AddressFamily, socket.SocketKind, int, str, tuple[str, int] | tuple[str, int, int, int] | tuple[int, bytes]]]] = {}
+
+    _orig_getaddrinfo = socket.getaddrinfo
+
+    def cached_getaddrinfo(host: str, port: int, *args: Any, **kwargs: Any) -> list:
+        key = (host, port)
+
+        if key not in dns_cache:
+            dns_cache[key] = _orig_getaddrinfo(host, port, *args, **kwargs)
+
+        return dns_cache[key]
+
+    socket.getaddrinfo = cached_getaddrinfo  # type: ignore
 
 
 job_cache = JobCache()
